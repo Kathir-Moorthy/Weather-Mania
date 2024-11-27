@@ -76,4 +76,4 @@ Follow these steps to get started with **Weather-Mania**:
 - **Hosting**: Vercel  
 
 ## 🌐 Check the Live App  
-[Click here to view the app on Vercel!](https://weather-mania.vercel.app/search-weather)
+[Click here to view the app on Vercel!](https://weather-mania.vercel.app/)
