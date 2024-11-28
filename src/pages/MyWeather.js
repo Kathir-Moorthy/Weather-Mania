@@ -19,11 +19,12 @@ const MyWeather = () => {
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
 
-    // Get animation based on weather type
-    const getAnimation = (weatherType) => {
+    // Get animation based on weather type and time of day
+    const getAnimation = (weatherType, timezoneOffset) => {
+        const daytime = isDaytime(timezoneOffset);
+
         if (weatherType === "Clear") {
-            const hours = new Date().getHours();
-            return hours >= 6 && hours < 18 ? sunnyAnimation : moonAnimation;
+            return daytime ? sunnyAnimation : moonAnimation;
         }
         switch (weatherType) {
             case "Clouds":
@@ -40,22 +41,29 @@ const MyWeather = () => {
             case "Snow":
                 return snowAnimation;
             default:
-                return sunnyAnimation;
+                return daytime ? sunnyAnimation : moonAnimation; // Default to sun/moon based on time
         }
     };
 
-    // Get theme color based on weather type
-    const getThemeColor = (weatherType) => {
-        const hours = new Date().getHours();
-        const isDaytime = hours >= 6 && hours < 18;
+    // Determine if it's daytime based on the city's local time
+    const isDaytime = (timezoneOffset) => {
+        const utcTime = new Date().getTime() + new Date().getTimezoneOffset() * 60000; // Current UTC time in ms
+        const localTime = new Date(utcTime + timezoneOffset * 1000); // Convert to local time using timezone offset
+        const localHours = localTime.getHours();
+        return localHours >= 4 && localHours < 16; // Daytime is 4 AM to 4 PM
+    };
 
-        if (weatherType === "Clear") return isDaytime ? "#358CEE" : "#2C3E50";
+    // Get theme color based on weather type and time of day
+    const getThemeColor = (weatherType, timezoneOffset) => {
+        const daytime = isDaytime(timezoneOffset);
+
+        if (weatherType === "Clear") return daytime ? "#358CEE" : "#2C3E50";
         if (["Clouds", "Mist", "Fog", "Smoke"].includes(weatherType))
-            return isDaytime ? "#A9A9A9" : "#34495E";
+            return daytime ? "#A9A9A9" : "#34495E";
         if (["Rain", "Thunderstorm", "Drizzle", "Lightning"].includes(weatherType))
-            return isDaytime ? "#5F6A6A" : "#1C1C1C";
-        if (weatherType === "Snow") return isDaytime ? "#ADD8E6" : "#4B0082";
-        return "#3498DB"; // Default color
+            return daytime ? "#5F6A6A" : "#1C1C1C";
+        if (weatherType === "Snow") return daytime ? "#ADD8E6" : "#4B0082";
+        return daytime ? "#3498DB" : "#2C3E50"; // Default color
     };
 
     // Get local date and time based on timezone offset
@@ -124,7 +132,7 @@ const MyWeather = () => {
                         <div
                             key={weather.id}
                             style={{
-                                backgroundColor: getThemeColor(weather.weather[0].main),
+                                backgroundColor: getThemeColor(weather.weather[0].main, weather.timezone),
                                 padding: "20px",
                                 borderRadius: "10px",
                                 color: "#fff",
@@ -135,18 +143,18 @@ const MyWeather = () => {
                             }}
                         >
                             <Lottie
-                                animationData={getAnimation(weather.weather[0].main)}
+                                animationData={getAnimation(weather.weather[0].main, weather.timezone)}
                                 style={{ height: "100px" }}
                             />
                             <h3>
                                 {weather.name}, {weather.sys.country}
                             </h3>
                             <p>{capitalizeWords(weather.weather[0].description)}</p>
-                            <p>Temperature: {weather.main.temp}°C</p>
-                            <p>Humidity: {weather.main.humidity}%</p>
-                            <p>Wind Speed: {weather.wind.speed} m/s</p>
+                            <p>Temperature(🌡️): {weather.main.temp}°C</p>
+                            <p>Humidity(💧): {weather.main.humidity}%</p>
+                            <p>Wind Speed(🌬️): {weather.wind.speed} m/s</p>
                             <p>
-                                <strong>Local Date & Time:</strong> {getLocalDateTime(weather.timezone)}
+                                <strong>Local Date & Time(📅):</strong> {getLocalDateTime(weather.timezone)}
                             </p>
                             <div style={{ marginTop: "15px" }}>
                                 <button
