@@ -28,10 +28,10 @@ const Home = () => {
             backgroundColor: "#007BFF",
             fontSize: "1.1rem",
             fontWeight: "bold",
-            opacity: 0, // Initial opacity for fade-in
-            transform: "translateY(-20px)", // Initial position for fade-in
-            transition: "opacity 0.8s ease, transform 0.8s ease",
+            display: "inline-block",
+            textAlign: "center",
             boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+            transition: "background-color 0.3s ease, transform 0.3s ease",
         },
     });
 
@@ -112,43 +112,32 @@ const Home = () => {
             >
                 "Your ultimate weather companion, wherever you go!"
             </p>
-            <div
-                style={{
-                    ...tabsContainer,
-                    opacity: fadeIn ? 1 : 0,
-                    transform: fadeIn ? "translateY(0)" : "translateY(-20px)",
-                    transition: "opacity 0.8s ease, transform 0.8s ease",
-                }}
-            >
+            <div style={tabsContainer}>
                 <Link
                     to="/search-weather"
-                    style={{
-                        ...styles.tabStyle,
-                        opacity: fadeIn ? 1 : 0,
-                        transform: fadeIn ? "translateY(0)" : "translateY(-20px)",
+                    style={styles.tabStyle}
+                    onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#0056b3";
+                        e.target.style.transform = "scale(1.05)";
                     }}
-                    onMouseEnter={(e) =>
-                        (e.target.style.backgroundColor = "#0056b3")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.target.style.backgroundColor = "#007BFF")
-                    }
+                    onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "#007BFF";
+                        e.target.style.transform = "scale(1)";
+                    }}
                 >
                     Search Weather
                 </Link>
                 <Link
                     to="/my-weather"
-                    style={{
-                        ...styles.tabStyle,
-                        opacity: fadeIn ? 1 : 0,
-                        transform: fadeIn ? "translateY(0)" : "translateY(-20px)",
+                    style={styles.tabStyle}
+                    onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "#0056b3";
+                        e.target.style.transform = "scale(1.05)";
                     }}
-                    onMouseEnter={(e) =>
-                        (e.target.style.backgroundColor = "#0056b3")
-                    }
-                    onMouseLeave={(e) =>
-                        (e.target.style.backgroundColor = "#007BFF")
-                    }
+                    onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "#007BFF";
+                        e.target.style.transform = "scale(1)";
+                    }}
                 >
                     My Weather
                 </Link>
@@ -162,17 +151,19 @@ const homeContainer = {
     padding: "1rem",
     background: "linear-gradient(135deg, #A6D8FF, #70AFFF)",
     color: "black",
-    minHeight: "100vh",
+    flex: 1, // Ensures the component stretches inside the flex container (App.js)
     display: "flex",
     flexDirection: "column",
-    justifyContent: "center",
+    justifyContent: "center", // Vertically center the content
     alignItems: "center",
 };
 
 const tabsContainer = {
     display: "flex",
     justifyContent: "center",
-    gap: "1.5rem",
+    gap: "1.5rem", // Space between buttons
+    flexWrap: "wrap", // Wrap the buttons on small screens
+    marginTop: "2rem",
 };
 
 export default Home;

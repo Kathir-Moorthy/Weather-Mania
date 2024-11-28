@@ -5,13 +5,12 @@ import SearchWeather from "./pages/SearchWeather";
 import MyWeather from "./pages/MyWeather";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import { WeatherContextProvider } from "./context/WeatherContext"; // Updated import path and name
+import { WeatherContextProvider } from "./context/WeatherContext";
 
 const App = () => {
     return (
         <WeatherContextProvider>
             <Router>
-                {/* Flexbox container for layout */}
                 <div style={appStyle}>
                     <Header />
                     <div style={contentStyle}>
@@ -35,9 +34,11 @@ const appStyle = {
     minHeight: "100vh", // Ensures the app spans the full viewport height
 };
 
-// Main content style to grow and take available space
+// Main content style to ensure the content is between Header and Footer
 const contentStyle = {
-    flex: 1, 
+    flex: 1, // Allows the content to grow and take the remaining space
+    display: "flex",
+    flexDirection: "column", // Ensures content inside (like Home.js) is vertically aligned
 };
 
 export default App;
