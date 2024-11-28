@@ -162,7 +162,7 @@ const homeContainer = {
     padding: "1rem",
     background: "linear-gradient(135deg, #A6D8FF, #70AFFF)",
     color: "black",
-    minHeight: "70vh",
+    minHeight: "100vh",
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
