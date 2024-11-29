@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { WeatherContext } from "../context/WeatherContext";
 import Lottie from "lottie-react";
 import sunnyAnimation from "../assets/animations/sunny-animation.json";
@@ -12,6 +12,9 @@ const SearchWeather = () => {
     const { addToMyWeather } = useContext(WeatherContext);
     const [weatherData, setWeatherData] = useState(null);
     const [city, setCity] = useState("");
+    const [localTime, setLocalTime] = useState("");
+
+    const apiKey = "37161b8991aead2552a7c36c69e64983";
 
     const handleSearch = async () => {
         if (!city.trim()) {
@@ -19,7 +22,6 @@ const SearchWeather = () => {
             return;
         }
 
-        const apiKey = "37161b8991aead2552a7c36c69e64983";
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
         try {
@@ -40,7 +42,6 @@ const SearchWeather = () => {
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
 
-    // Calculate if it's daytime or nighttime based on the city's local time
     const isDaytime = (timezoneOffset) => {
         const utcTime = new Date().getTime() + new Date().getTimezoneOffset() * 60000; // Current UTC time in ms
         const localTime = new Date(utcTime + timezoneOffset * 1000); // Convert to local time using timezone offset
@@ -48,7 +49,6 @@ const SearchWeather = () => {
         return localHours >= 4 && localHours < 16; // Daytime is 4 AM to 4 PM
     };
 
-    // Determine the animation based on the weather type and time
     const getAnimation = (weatherType, timezoneOffset) => {
         const daytime = isDaytime(timezoneOffset);
 
@@ -70,11 +70,10 @@ const SearchWeather = () => {
             case "Snow":
                 return snowAnimation;
             default:
-                return daytime ? sunnyAnimation : moonAnimation; // Default to sun/moon based on time
+                return daytime ? sunnyAnimation : moonAnimation;
         }
     };
 
-    // Determine the theme color based on the weather type and time
     const getThemeColor = (weatherType, timezoneOffset) => {
         const daytime = isDaytime(timezoneOffset);
 
@@ -94,22 +93,44 @@ const SearchWeather = () => {
         )
             return daytime ? "#5F6A6A" : "#1C1C1C";
         if (weatherType === "Snow") return daytime ? "#ADD8E6" : "#4B0082";
-        return daytime ? "#3498DB" : "#2C3E50"; // Default color
+        return daytime ? "#3498DB" : "#2C3E50";
     };
 
-    const getLocalDateTime = (timezoneOffset) => {
+    const updateLocalTime = (timezoneOffset) => {
         const utcTime = new Date().getTime() + new Date().getTimezoneOffset() * 60000; // UTC time in milliseconds
         const localTime = new Date(utcTime + timezoneOffset * 1000); // Adjust with city's timezone offset
-        return localTime.toLocaleString("en-US", {
-            weekday: "long",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-        });
+        setLocalTime(
+            localTime.toLocaleString("en-US", {
+                weekday: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+            })
+        );
     };
+
+    // Live updates for time and weather
+    useEffect(() => {
+        if (weatherData) {
+            // Update time every second
+            const timeInterval = setInterval(() => {
+                updateLocalTime(weatherData.timezone);
+            }, 1000);
+
+            // Refresh weather data every 10 minutes
+            const weatherInterval = setInterval(() => {
+                handleSearch();
+            }, 600000); // 10 minutes in milliseconds
+
+            return () => {
+                clearInterval(timeInterval);
+                clearInterval(weatherInterval);
+            };
+        }
+    }, [weatherData]);
 
     return (
         <div style={{ padding: "20px", textAlign: "center" }}>
@@ -185,8 +206,7 @@ const SearchWeather = () => {
                     <p>Humidity(💧): {weatherData.main.humidity}%</p>
                     <p>Wind Speed(🌬️): {weatherData.wind.speed} m/s</p>
                     <p>
-                        <strong>Local Date & Time(📅):</strong>{" "}
-                        {getLocalDateTime(weatherData.timezone)}
+                        <strong>Local Date & Time(📅):</strong> {localTime}
                     </p>
                     <button
                         onClick={() => addToMyWeather(weatherData)}

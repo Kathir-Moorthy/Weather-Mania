@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { WeatherContext } from "../context/WeatherContext";
 import Lottie from "lottie-react";
 import { jsPDF } from "jspdf";
@@ -11,6 +11,23 @@ import snowAnimation from "../assets/animations/snow-animation.json";
 
 const MyWeather = () => {
     const { myWeather, removeFromMyWeather } = useContext(WeatherContext);
+    const [currentTimes, setCurrentTimes] = useState({}); // Track live local times for all cards
+
+    // Update local time for each weather card every second
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const updatedTimes = {};
+            myWeather.forEach((weather) => {
+                const utcTime =
+                    new Date().getTime() + new Date().getTimezoneOffset() * 60000;
+                const localTime = new Date(utcTime + weather.timezone * 1000);
+                updatedTimes[weather.id] = localTime;
+            });
+            setCurrentTimes(updatedTimes);
+        }, 1000);
+
+        return () => clearInterval(interval); // Clear interval on unmount
+    }, [myWeather]);
 
     // Capitalize text utility
     const capitalizeWords = (text) =>
@@ -18,6 +35,14 @@ const MyWeather = () => {
             .split(" ")
             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(" ");
+
+    // Determine if it's daytime based on the local time
+    const isDaytime = (timezoneOffset) => {
+        const utcTime = new Date().getTime() + new Date().getTimezoneOffset() * 60000;
+        const localTime = new Date(utcTime + timezoneOffset * 1000);
+        const localHours = localTime.getHours();
+        return localHours >= 4 && localHours < 16; // Daytime is 4 AM to 4 PM
+    };
 
     // Get animation based on weather type and time of day
     const getAnimation = (weatherType, timezoneOffset) => {
@@ -45,14 +70,6 @@ const MyWeather = () => {
         }
     };
 
-    // Determine if it's daytime based on the city's local time
-    const isDaytime = (timezoneOffset) => {
-        const utcTime = new Date().getTime() + new Date().getTimezoneOffset() * 60000; // Current UTC time in ms
-        const localTime = new Date(utcTime + timezoneOffset * 1000); // Convert to local time using timezone offset
-        const localHours = localTime.getHours();
-        return localHours >= 4 && localHours < 16; // Daytime is 4 AM to 4 PM
-    };
-
     // Get theme color based on weather type and time of day
     const getThemeColor = (weatherType, timezoneOffset) => {
         const daytime = isDaytime(timezoneOffset);
@@ -66,28 +83,27 @@ const MyWeather = () => {
         return daytime ? "#3498DB" : "#2C3E50"; // Default color
     };
 
-    // Get local date and time based on timezone offset
-    const getLocalDateTime = (timezoneOffset) => {
-        const utcTime = new Date().getTime() + new Date().getTimezoneOffset() * 60000; // UTC time in milliseconds
-        const localTime = new Date(utcTime + timezoneOffset * 1000); // Adjust with city's timezone offset
-        return localTime.toLocaleString("en-US", {
-            weekday: "long",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-        });
-    };
-
     // Download weather report as PDF with additional information
     const downloadReport = (data) => {
         const doc = new jsPDF();
 
         doc.setFontSize(18);
         doc.text(`${data.name}, ${data.sys.country} - Weather Report`, 10, 20);
-        doc.text(`Local Date & Time: ${getLocalDateTime(data.timezone)}`, 10, 30);
+        doc.text(
+            `Local Date & Time: ${
+                currentTimes[data.id]?.toLocaleString("en-US", {
+                    weekday: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                }) || "Fetching..."
+            }`,
+            10,
+            30
+        );
 
         doc.setFontSize(12);
         doc.text(`Weather: ${capitalizeWords(data.weather[0].description)}`, 10, 50);
@@ -100,10 +116,6 @@ const MyWeather = () => {
         doc.text(`Sunrise: ${new Date(data.sys.sunrise * 1000).toLocaleTimeString()}`, 10, 120);
         doc.text(`Sunset: ${new Date(data.sys.sunset * 1000).toLocaleTimeString()}`, 10, 130);
         doc.text(`Cloud Coverage: ${data.clouds.all}%`, 10, 140);
-
-        doc.text("Coordinates:", 10, 160);
-        doc.text(`Latitude: ${data.coord.lat}`, 10, 170);
-        doc.text(`Longitude: ${data.coord.lon}`, 10, 180);
 
         doc.save(`${data.name}_Weather_Report.pdf`);
     };
@@ -154,7 +166,16 @@ const MyWeather = () => {
                             <p>Humidity(💧): {weather.main.humidity}%</p>
                             <p>Wind Speed(🌬️): {weather.wind.speed} m/s</p>
                             <p>
-                                <strong>Local Date & Time(📅):</strong> {getLocalDateTime(weather.timezone)}
+                                <strong>Local Date & Time(📅):</strong>{" "}
+                                {currentTimes[weather.id]?.toLocaleString("en-US", {
+                                    weekday: "long",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                }) || "Fetching..."}
                             </p>
                             <div style={{ marginTop: "15px" }}>
                                 <button
