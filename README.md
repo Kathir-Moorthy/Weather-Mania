@@ -56,7 +56,7 @@ Follow these steps to get started with **Weather-Mania**:
 
 1. **Clone this repository**:  
    ```bash
-   git clone https://github.com/yourusername/weather-mania.git
+   git clone https://github.com/Kathir-Moorthy/weather-mania.git
 2. Navigate to the project directory:
    ```bash
    cd weather-mania
