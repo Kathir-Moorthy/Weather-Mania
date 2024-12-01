@@ -36,7 +36,7 @@ Weather-Mania/
 │   │
 │   ├── components/
 │   │   ├── Header.js
-│   │   ├── Footer.js
+│   │   └── Footer.js
 │   │
 │   ├── pages/
 │   │   ├── Home.js
