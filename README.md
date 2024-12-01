@@ -22,7 +22,7 @@ Here's the detailed project structure:
 Weather-Mania/
 ├── public/
 │   ├── index.html
-│   ├── logo.png
+│   └── logo.png
 │
 ├── src/
 │   ├── assets/
